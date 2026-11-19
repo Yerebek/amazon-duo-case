@@ -14,6 +14,7 @@ interface ProductDetailModalProps {
   location: DeliveryLocation;
   onClose: () => void;
   onAddToCart: (product: Product, colorName: string, model: string, qty: number) => void;
+  onOneClickBuy: (product: Product, colorName: string, model: string, qty: number) => void;
   onBuyNow: (product: Product, colorName: string, model: string, qty: number) => void;
 }
 
@@ -23,6 +24,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   location,
   onClose,
   onAddToCart,
+  onOneClickBuy,
   onBuyNow,
 }) => {
   const [selectedColorIdx, setSelectedColorIdx] = useState(0);
@@ -304,10 +306,21 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
               <button
                 type="button"
-                onClick={() => onBuyNow(product, activeColor.name, selectedModel, qty)}
+                onClick={() => {
+                  onOneClickBuy(product, activeColor.name, selectedModel, qty);
+                  onClose();
+                }}
                 className="w-full py-2 px-4 rounded-full text-[13px] font-medium bg-[#FFA41C] hover:bg-[#FA8900] text-[#0F1111] transition-colors cursor-pointer"
               >
-                Buy Now
+                Buy now with 1-Click
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onBuyNow(product, activeColor.name, selectedModel, qty)}
+                className="w-full py-2 px-4 rounded-full text-[13px] font-medium bg-[#F0F2F2] hover:bg-[#E3E6E6] border border-[#D5D9D9] text-[#0F1111] transition-colors cursor-pointer"
+              >
+                Proceed via Cart
               </button>
             </div>
 

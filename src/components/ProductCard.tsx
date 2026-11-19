@@ -12,15 +12,18 @@ interface ProductCardProps {
   product: Product;
   onSelect: (product: Product, activeColor: string) => void;
   onAddToCart: (product: Product, colorName: string) => void;
+  onOneClickBuy: (product: Product, colorName: string) => void;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
   product,
   onSelect,
   onAddToCart,
+  onOneClickBuy,
 }) => {
   const [activeColorIdx, setActiveColorIdx] = useState(0);
   const [justAdded, setJustAdded] = useState(false);
+  const [justOrdered, setJustOrdered] = useState(false);
 
   const activeVariant = product.colors[activeColorIdx] ?? {
     name: 'Default',
@@ -33,6 +36,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     onAddToCart(product, activeVariant.name);
     setJustAdded(true);
     window.setTimeout(() => setJustAdded(false), 1400);
+  };
+
+  const handleOneClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onOneClickBuy(product, activeVariant.name);
+    setJustOrdered(true);
+    window.setTimeout(() => setJustOrdered(false), 1800);
   };
 
   const getBadgeStyle = (badge: Product['badge']) => {
@@ -169,11 +179,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       </div>
 
       {/* Card Action Footer */}
-      <div className="px-3.5 pb-3.5 pt-2">
+      <div className="px-3.5 pb-3.5 pt-2 flex flex-col gap-1.5">
         <button
           type="button"
           onClick={handleAdd}
-          className={`inline-flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-full text-[13px] font-medium transition-colors cursor-pointer ${
+          className={`w-full inline-flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-full text-[13px] font-medium transition-colors cursor-pointer ${
             justAdded
               ? 'bg-[#067D62] text-white'
               : 'bg-[#FFD814] hover:bg-[#F7CA00] active:bg-[#F0B800] text-[#0F1111]'
@@ -186,6 +196,25 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             </>
           ) : (
             <span>Add to cart</span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={handleOneClick}
+          className={`w-full inline-flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-full text-[13px] font-medium transition-colors cursor-pointer ${
+            justOrdered
+              ? 'bg-[#067D62] text-white'
+              : 'bg-[#FFA41C] hover:bg-[#FA8900] active:bg-[#F08804] text-[#0F1111]'
+          }`}
+        >
+          {justOrdered ? (
+            <>
+              <Check className="w-3.5 h-3.5" />
+              <span>Ordered with 1-Click</span>
+            </>
+          ) : (
+            <span>Buy now with 1-Click</span>
           )}
         </button>
       </div>

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { SlidersHorizontal, ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
+import { SlidersHorizontal, ChevronLeft, ChevronRight, Search, X, CheckCircle2 } from 'lucide-react';
 import {
   PRODUCTS,
   ALL_BRANDS,
@@ -63,6 +63,11 @@ export default function App() {
 
   const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [ordersModalOpen, setOrdersModalOpen] = useState(false);
+  const [oneClickNotice, setOneClickNotice] = useState<{
+    orderId: string;
+    title: string;
+    total: number;
+  } | null>(null);
 
   const handleSearchSubmit = (newQuery: string, newDepartment: string) => {
     setFilters((prev) => ({
@@ -227,6 +232,31 @@ export default function App() {
     addToCart(product, colorName, model, qty);
     setSelectedProduct(null);
     setCartOpen(true);
+  };
+
+  const handleOneClickBuy = (
+    product: Product,
+    colorName: string,
+    model = product.compatibleModels[0] || 'iPhone 16 Pro Max',
+    qty = 1
+  ) => {
+    const orderId = `402-${Math.floor(1000000 + Math.random() * 8999999)}-${Math.floor(
+      1000000 + Math.random() * 8999999
+    )}`;
+    const total = product.price * qty;
+    const newOrder: OrderRecord = {
+      orderId,
+      date: '18 Nov 2026',
+      total,
+      status: `${product.deliveryText} · 1-Click Order Confirmed`,
+      deliveryAddress: `${location.city} ${location.postalCode}`,
+      items: [{ product, selectedColor: colorName, selectedModel: model, quantity: qty }],
+    };
+    setOrders((prev) => [newOrder, ...prev]);
+    setOneClickNotice({ orderId, title: product.title, total });
+    window.setTimeout(() => {
+      setOneClickNotice((curr) => (curr?.orderId === orderId ? null : curr));
+    }, 5000);
   };
 
   const handleUpdateQty = (index: number, delta: number) => {
@@ -472,6 +502,9 @@ export default function App() {
                   onAddToCart={(p, colorName) =>
                     addToCart(p, colorName, p.compatibleModels[0] || 'iPhone 16 Pro Max', 1)
                   }
+                  onOneClickBuy={(p, colorName) =>
+                    handleOneClickBuy(p, colorName, p.compatibleModels[0] || 'iPhone 16 Pro Max', 1)
+                  }
                 />
               ))}
             </div>
@@ -589,8 +622,47 @@ export default function App() {
         location={location}
         onClose={() => setSelectedProduct(null)}
         onAddToCart={(p, color, model, qty) => addToCart(p, color, model, qty)}
+        onOneClickBuy={(p, color, model, qty) => handleOneClickBuy(p, color, model, qty)}
         onBuyNow={handleBuyNow}
       />
+
+      {oneClickNotice && (
+        <div
+          role="status"
+          className="fixed bottom-5 right-5 z-50 max-w-[360px] bg-white border border-[#067D62] rounded-[8px] shadow-xl p-4 flex items-start gap-3"
+        >
+          <CheckCircle2 className="w-5 h-5 text-[#067D62] mt-0.5 shrink-0" />
+          <div className="min-w-0 flex-1 text-[13px]">
+            <p className="font-bold text-[#067D62]">
+              1-Click Order Confirmed #{oneClickNotice.orderId.slice(0, 11)}
+            </p>
+            <p className="text-[#0F1111] line-clamp-1 mt-0.5">{oneClickNotice.title}</p>
+            <div className="flex items-center justify-between mt-2">
+              <span className="font-bold tabular-nums text-[#0F1111]">
+                Total: S${oneClickNotice.total.toFixed(2)}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setOneClickNotice(null);
+                  setOrdersModalOpen(true);
+                }}
+                className="text-[#007185] hover:text-[#C7511F] hover:underline font-medium cursor-pointer"
+              >
+                View Orders
+              </button>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setOneClickNotice(null)}
+            aria-label="Dismiss notification"
+            className="text-[#565959] hover:text-[#0F1111] cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       <CartDrawer
         open={cartOpen}
